@@ -1,7 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 import eventlet
 from ollama_client import generate_ollama_response, generate_ollama_response_with_context
+from tts_stream import tts_audio_bytes
 
 eventlet.monkey_patch()
 
@@ -36,14 +37,21 @@ def handle_generate_response(prompt):
     try:
         global latest_whiteboard_snapshot
         context = latest_whiteboard_snapshot if latest_whiteboard_snapshot else None
-        response1 = generate_ollama_response('Describe the following image for a model that will use it to answer a question', images=[latest_whiteboard_snapshot])
-        response2 = generate_ollama_response_with_context('Output the following prompt response informally as if you were an eighth-grade teacher:' + prompt, context=response1)
+        response1 = generate_ollama_response('Extract text from this image including any mathematical symbols:', images=[latest_whiteboard_snapshot])
+        response2 = generate_ollama_response_with_context('Output the following prompt response informally as if you were an eighth-grade teacher:' + prompt["text"], context=response1)
         print('Ollama response:', response1)
         emit("model_response", {'type': 'ollama_response', 'data': response1})
         emit("draw_visual", {'type': 'ollama_response', 'data': response2})
+        sid = request.sid
+        socketio.start_background_task(send_tts_audio_to_client, response2, sid)
     except Exception as e:
         print('Error:', e)
         emit("model_error", {'type': 'ollama_error', 'data': str(e)})
+
+# Send complete TTS audio to the client
+def send_tts_audio_to_client(text, sid):
+    audio_bytes = tts_audio_bytes(text)
+    socketio.emit('tts_audio', audio_bytes, to=sid)
 
 @socketio.on('whiteboard_snapshot')
 def handle_whiteboard_snapshot(image_b64):

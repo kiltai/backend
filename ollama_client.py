@@ -4,9 +4,9 @@ from langchain.schema import HumanMessage
 
 OLLAMA_API_URL = 'http://localhost:11434/api/generate'
 
-def generate_ollama_response(prompt, model='mathstral', images=None):
+def generate_ollama_response(prompt, images=None):
     payload = {
-        'model': model,
+        'model': "llava",
         'prompt': prompt,
         'stream': False,
         'images': images
