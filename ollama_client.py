@@ -15,9 +15,9 @@ def generate_ollama_response(prompt, images=None):
     response.raise_for_status()
     return response.json().get('response', '')
 
-def generate_ollama_response_with_context(prompt, context=None, model='mathstral'):
+def generate_ollama_response_with_context(prompt, context=None, model='codellama'):
     llm = Ollama(model=model)
     if context:
-        prompt = f"Context: {context}\nPrompt: {prompt}"
+        prompt = f"This is a Mermaid.js diagram generated as context, use it while responding to the prompt: {context}\nPrompt: {prompt}"
     messages = [HumanMessage(content=prompt)]
-    return llm.invoke(messages) 
+    return llm.invoke(messages)

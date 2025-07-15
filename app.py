@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 import eventlet
 from ollama_client import generate_ollama_response, generate_ollama_response_with_context
-from tts_stream import tts_audio_bytes
+from tts_stream import tts_audio_bytes, generate_image
 
 eventlet.monkey_patch()
 
@@ -37,13 +37,18 @@ def handle_generate_response(prompt):
     try:
         global latest_whiteboard_snapshot
         context = latest_whiteboard_snapshot if latest_whiteboard_snapshot else None
-        response1 = generate_ollama_response('Extract text from this image including any mathematical symbols:', images=[latest_whiteboard_snapshot])
-        response2 = generate_ollama_response_with_context('Output the following prompt response informally as if you were an eighth-grade teacher:' + prompt["text"], context=response1)
-        print('Ollama response:', response1)
-        emit("model_response", {'type': 'ollama_response', 'data': response1})
-        emit("draw_visual", {'type': 'ollama_response', 'data': response2})
+
+        # Generate diagram
+        # diagram_code = generate_image(prompt['text'])
+        # print("Diagram generated: " + diagram_code)
+        # socketio.emit('viz_generated', diagram_code)
+
+        # Generate AI response
+        response = generate_ollama_response_with_context('Your role is a teacher. Output the following prompt response informally: ' + prompt["text"])
+
+        emit("model_response", {'type': 'ollama_response', 'data': response})
         sid = request.sid
-        socketio.start_background_task(send_tts_audio_to_client, response2, sid)
+        socketio.start_background_task(send_tts_audio_to_client, response, sid)
     except Exception as e:
         print('Error:', e)
         emit("model_error", {'type': 'ollama_error', 'data': str(e)})
