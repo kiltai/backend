@@ -17,20 +17,24 @@ latest_whiteboard_snapshot = None
 def index():
     return "SocketIO server is running."
 
+# Irrelevant, for logging connections.
 @socketio.on('connect')
 def handle_connect():
     print('Client connected')
     send('You are connected!')
 
+# Again, logging when disconnected.
 @socketio.on('disconnect')
 def handle_disconnect():
     print('Client disconnected')
 
+# Irrelevant, boilerplate, does nothing.
 @socketio.on('message')
 def handle_message(msg):
     print('Received message: ' + msg)
     send('Echo: ' + msg)
 
+# This event generates a text response then sends it as speech.
 @socketio.on('generate_response')
 def handle_generate_response(prompt):
     print('Received prompt for Ollama:', prompt)
@@ -48,16 +52,19 @@ def handle_generate_response(prompt):
 
         emit("model_response", {'type': 'ollama_response', 'data': response})
         sid = request.sid
+        # Crucial to start this background task - triggers the "send tts" event, so as soon as a text response is generated
+        # you stream speech to the client.
         socketio.start_background_task(send_tts_audio_to_client, response, sid)
     except Exception as e:
         print('Error:', e)
         emit("model_error", {'type': 'ollama_error', 'data': str(e)})
 
-# Send complete TTS audio to the client
+# Send complete TTS audio to the client. Process the text into speech (in bytes) and then stream that to the client.
 def send_tts_audio_to_client(text, sid):
     audio_bytes = tts_audio_bytes(text)
     socketio.emit('tts_audio', audio_bytes, to=sid)
 
+# This event is responsible for taking a base64 image uri and then setting that to a global context variable
 @socketio.on('whiteboard_snapshot')
 def handle_whiteboard_snapshot(image_b64):
     global latest_whiteboard_snapshot
