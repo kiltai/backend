@@ -1,19 +1,13 @@
 import numpy as np
-from bark import SAMPLE_RATE, generate_audio
 import io
 import os
 from scipy.io import wavfile
 from openai import OpenAI
 
-# TODO: Here, it is using this thing called Bark. Idk what it is, cursor generated it. Switch to some other API.
+# TODO: Here, it was using this thing called Bark. Idk what it is, cursor generated it. Switch to some other API.
 def tts_audio_bytes(text):
-    # Generate audio array using Bark
-    audio_array = generate_audio(text)
-    # Save to a BytesIO buffer as WAV using scipy
-    buf = io.BytesIO()
-    wavfile.write(buf, SAMPLE_RATE, audio_array)
-    buf.seek(0)
-    return buf.read()
+    # implement this, wont work otherwise
+    # goal is to use some tts library to convert text into WAV or some other file format bytes. ask cursor for help.
 
 # TODO: This was for generating diagrams. No point in the current project scope.
 def generate_image(prompt, model="gpt-image-1", size="1024x1024"):

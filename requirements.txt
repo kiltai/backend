@@ -3,9 +3,6 @@ Flask-SocketIO==5.3.6
 eventlet==0.33.3 
 requests==2.31.0 
 langchain==0.1.14 
-bark==0.0.1a0
 numpy==1.26.4
 scipy==1.13.1
-torch==2.3.0
-encodec==0.1.1 
 openai==1.30.1 
