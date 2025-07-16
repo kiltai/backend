@@ -6,3 +6,5 @@ Steps to run:
 3. Install requirements: `pip install -r requirements.txt`
 4. Run code: `python app.py`
 5. Run frontend and then see `Client connected` logged
+
+Note: Download ollama, pull codellama model from it
