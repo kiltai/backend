@@ -1,8 +1,7 @@
-venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pyw
-*.pyz
+# Environment variables
 .env
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class

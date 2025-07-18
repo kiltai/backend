@@ -8,6 +8,7 @@ from openai import OpenAI
 def tts_audio_bytes(text):
     # implement this, wont work otherwise
     # goal is to use some tts library to convert text into WAV or some other file format bytes. ask cursor for help.
+    pass
 
 # TODO: This was for generating diagrams. No point in the current project scope.
 def generate_image(prompt, model="gpt-image-1", size="1024x1024"):

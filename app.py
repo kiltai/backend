@@ -1,10 +1,13 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
-import eventlet
+from dotenv import load_dotenv
 from ollama_client import generate_ollama_response, generate_ollama_response_with_context
 from tts_stream import tts_audio_bytes, generate_image
 
-eventlet.monkey_patch()
+load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -48,7 +51,10 @@ def handle_generate_response(prompt):
         # socketio.emit('viz_generated', diagram_code)
 
         # Generate AI response
-        response = generate_ollama_response_with_context('Your role is a teacher. Output the following prompt response informally: ' + prompt["text"])
+        response = generate_ollama_response_with_context(
+            'Your role is a teacher. Output the following prompt response informally: ' + prompt,
+            context=context
+        )
 
         emit("model_response", {'type': 'ollama_response', 'data': response})
         sid = request.sid
@@ -58,6 +64,30 @@ def handle_generate_response(prompt):
     except Exception as e:
         print('Error:', e)
         emit("model_error", {'type': 'ollama_error', 'data': str(e)})
+
+
+# This event generates a text-only response.
+@socketio.on('text_response')
+def handle_text_response(prompt):
+    print('--- Received text_response event ---')
+    print('Input prompt:', prompt)
+    try:
+        global latest_whiteboard_snapshot
+        context = latest_whiteboard_snapshot if latest_whiteboard_snapshot else None
+
+        # Generate AI response
+        response = generate_ollama_response_with_context(
+            'Your role is a teacher. Output the following prompt response informally: ' + prompt,
+            context=context
+        )
+
+        print('Generated AI Response:', response)
+        print('--- Emitting text_model_response ---')
+        emit("text_model_response", {'type': 'ollama_response', 'data': response})
+    except Exception as e:
+        print('Error in text_response handler:', e)
+        emit("model_error", {'type': 'ollama_error', 'data': str(e)})
+
 
 # Send complete TTS audio to the client. Process the text into speech (in bytes) and then stream that to the client.
 def send_tts_audio_to_client(text, sid):
